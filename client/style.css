@@ -1,0 +1,63 @@
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+}
+
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 20px;
+}
+
+.toolbar button {
+  font-size: 18px;
+  margin-left: 5px;
+  cursor: pointer;
+}
+
+.tool.active {
+  border: 2px solid black;
+}
+
+.users {
+  min-width: 150px;
+  text-align: left;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #f9f9f9;
+}
+
+.users ul {
+  list-style: none;
+  padding: 0;
+  margin: 5px 0 0 0;
+}
+
+.users li {
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+
+.canvas-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+canvas {
+  border: 2px solid black;
+}
+
+#cursorLayer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+.cursor {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}

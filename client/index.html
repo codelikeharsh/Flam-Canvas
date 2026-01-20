@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Collaborative Drawing</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<h2>Collaborative Drawing Canvas</h2>
+
+<div class="top-bar">
+  <div class="toolbar">
+    🎨 <input type="color" id="colorPicker" value="#000000" />
+    🖌️ <input type="range" id="brushSize" min="1" max="30" value="5" />
+    <button id="brushBtn" class="tool active">🖌️</button>
+    <button id="eraserBtn" class="tool">🧽</button>
+    <button id="undoBtn">↩️</button>
+    <button id="redoBtn">↪️</button>
+  </div>
+
+  <div class="users">
+    <strong>Online:</strong>
+    <ul id="userList"></ul>
+  </div>
+</div>
+
+<div class="canvas-wrapper">
+  <canvas id="canvas" width="900" height="500"></canvas>
+  <div id="cursorLayer"></div>
+</div>
+
+<script src="http://localhost:3000/socket.io/socket.io.js"></script>
+<script src="socket.js"></script>
+<script src="canvas.js"></script>
+
+</body>
+</html>
