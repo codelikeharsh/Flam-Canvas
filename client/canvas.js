@@ -10,7 +10,7 @@ ctx.lineJoin = "round";
 /* =====================================================
    GLOBAL STATE (SERVER CONTROLLED)
 ===================================================== */
-let operations = [];        // operation log from server
+let operations = [];
 let currentStroke = [];
 let isDrawing = false;
 
@@ -18,11 +18,11 @@ let isDrawing = false;
    TOOL STATE (LOCAL UI)
 ===================================================== */
 let currentColor = "#000000";
-let brushWidth = 5;         // ✅ RENAMED (important!)
-let tool = "brush";         // brush | eraser
+let brushWidth = 5;
+let tool = "brush"; // brush | eraser
 
 /* =====================================================
-   EXPOSE UPDATE FUNCTION FOR socket.js
+   EXPOSE UPDATE FUNCTION (FOR socket.js)
 ===================================================== */
 window.updateOperations = function (ops) {
   operations = ops;
@@ -67,24 +67,34 @@ function setTool(selected) {
 }
 
 /* =====================================================
-   MOUSE EVENTS
+   POINTER EVENTS (MOUSE + TOUCH)
 ===================================================== */
-canvas.addEventListener("mousedown", (e) => {
+canvas.addEventListener("pointerdown", (e) => {
+  e.preventDefault();
+  canvas.setPointerCapture(e.pointerId);
+
   isDrawing = true;
-  currentStroke = [getMousePos(e)];
+  currentStroke = [getPoint(e)];
 });
 
-canvas.addEventListener("mousemove", (e) => {
+canvas.addEventListener("pointermove", (e) => {
   if (!isDrawing) return;
+  e.preventDefault();
 
-  const point = getMousePos(e);
+  const point = getPoint(e);
   currentStroke.push(point);
   drawLive(currentStroke);
+
+  // cursor indicator for other users
+  socket.emit("cursor:move", point);
 });
 
-canvas.addEventListener("mouseup", () => {
+canvas.addEventListener("pointerup", (e) => {
   if (!isDrawing) return;
+  e.preventDefault();
+
   isDrawing = false;
+  canvas.releasePointerCapture(e.pointerId);
 
   const stroke = {
     id: crypto.randomUUID(),
@@ -95,15 +105,6 @@ canvas.addEventListener("mouseup", () => {
   };
 
   socket.emit("stroke:commit", stroke);
-});
-canvas.addEventListener("mousemove", (e) => {
-  if (!isDrawing) return;
-
-  const point = getMousePos(e);
-  currentStroke.push(point);
-  drawLive(currentStroke);
-
-  socket.emit("cursor:move", point);
 });
 
 /* =====================================================
@@ -174,7 +175,7 @@ function drawLive(points) {
 /* =====================================================
    UTILS
 ===================================================== */
-function getMousePos(e) {
+function getPoint(e) {
   const rect = canvas.getBoundingClientRect();
   return {
     x: e.clientX - rect.left,

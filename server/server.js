@@ -10,74 +10,83 @@ const io = new Server(server, {
 });
 
 /* =====================
-   GLOBAL STATE
+   ROOM STORAGE
 ===================== */
-let operations = [];
-const users = {};
-const COLORS = ["#e6194B", "#3cb44b", "#4363d8", "#f58231", "#911eb4", "#42d4f4"];
+const rooms = {};
+const COLORS = ["#e6194B", "#3cb44b", "#4363d8", "#f58231", "#911eb4"];
+
+function getRoom(roomId) {
+  if (!rooms[roomId]) {
+    rooms[roomId] = {
+      users: {},
+      operations: []
+    };
+  }
+  return rooms[roomId];
+}
 
 io.on("connection", (socket) => {
-  console.log("User connected:", socket.id);
 
-  // Assign color
-  const color = COLORS[Math.floor(Math.random() * COLORS.length)];
-  users[socket.id] = { color };
+  socket.on("room:join", ({ roomId }) => {
+    const room = getRoom(roomId);
+    socket.join(roomId);
 
-  // Send initial state
-  socket.emit("init", {
-    id: socket.id,
-    users,
-    operations
-  });
+    const color = COLORS[Math.floor(Math.random() * COLORS.length)];
+    room.users[socket.id] = { color };
 
-  socket.broadcast.emit("user:joined", {
-    id: socket.id,
-    color
-  });
-
-  /* -------- Drawing -------- */
-  socket.on("stroke:commit", (stroke) => {
-    operations.push({
-      id: stroke.id,
-      type: "stroke",
-      stroke,
-      active: true
-    });
-    io.emit("canvas:update", operations);
-  });
-
-  socket.on("undo", () => {
-    for (let i = operations.length - 1; i >= 0; i--) {
-      if (operations[i].active) {
-        operations[i].active = false;
-        break;
-      }
-    }
-    io.emit("canvas:update", operations);
-  });
-
-  socket.on("redo", () => {
-    for (let i = operations.length - 1; i >= 0; i--) {
-      if (!operations[i].active) {
-        operations[i].active = true;
-        break;
-      }
-    }
-    io.emit("canvas:update", operations);
-  });
-
-  /* -------- Cursor tracking -------- */
-  socket.on("cursor:move", (pos) => {
-    socket.broadcast.emit("cursor:update", {
+    socket.emit("room:init", {
       id: socket.id,
-      pos
+      users: room.users,
+      operations: room.operations
     });
-  });
 
-  socket.on("disconnect", () => {
-    console.log("User disconnected:", socket.id);
-    delete users[socket.id];
-    io.emit("user:left", socket.id);
+    socket.to(roomId).emit("user:joined", {
+      id: socket.id,
+      color
+    });
+
+    /* -------- Drawing -------- */
+    socket.on("stroke:commit", (stroke) => {
+      room.operations.push({
+        id: stroke.id,
+        type: "stroke",
+        stroke,
+        active: true
+      });
+      io.to(roomId).emit("canvas:update", room.operations);
+    });
+
+    socket.on("undo", () => {
+      for (let i = room.operations.length - 1; i >= 0; i--) {
+        if (room.operations[i].active) {
+          room.operations[i].active = false;
+          break;
+        }
+      }
+      io.to(roomId).emit("canvas:update", room.operations);
+    });
+
+    socket.on("redo", () => {
+      for (let i = room.operations.length - 1; i >= 0; i--) {
+        if (!room.operations[i].active) {
+          room.operations[i].active = true;
+          break;
+        }
+      }
+      io.to(roomId).emit("canvas:update", room.operations);
+    });
+
+    socket.on("cursor:move", (pos) => {
+      socket.to(roomId).emit("cursor:update", {
+        id: socket.id,
+        pos
+      });
+    });
+
+    socket.on("disconnect", () => {
+      delete room.users[socket.id];
+      socket.to(roomId).emit("user:left", socket.id);
+    });
   });
 });
 

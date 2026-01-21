@@ -6,6 +6,11 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+<script>
+  // Extract room ID from URL:
+  const pathParts = window.location.pathname.split("/");
+  window.ROOM_ID = pathParts[1] === "room" ? pathParts[2] : "default";
+</script>
 
 <h2>Collaborative Drawing Canvas</h2>
 
