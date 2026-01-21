@@ -1,6 +1,12 @@
-const socket = io("https://drawing-canvas-liqe.onrender.com", {
+if (typeof io === "undefined") {
+  alert("Socket.IO client failed to load. Disable ad blocker.");
+  throw new Error("Socket.IO client not loaded");
+}
+
+window.socket = io("https://drawing-canvas-liqe.onrender.com", {
   transports: ["websocket"]
 });
+
 
 let myId = null;
 let users = {};
